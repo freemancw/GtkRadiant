@@ -301,7 +301,7 @@ char *getS0( picoMemStream_t *fp ){
 	}
 
 	len = i + ( i & 1 );
-	s = _pico_alloc( len );
+	s = (char *)_pico_alloc( len );
 	if ( !s ) {
 		flen = FLEN_ERROR;
 		return NULL;
@@ -451,14 +451,14 @@ char *sgetS0( unsigned char **bp ){
 		return NULL;
 	}
 
-	len = strlen( buf ) + 1;
+	len = strlen( (char *)buf ) + 1;
 	if ( len == 1 ) {
 		flen += 2;
 		*bp += 2;
 		return NULL;
 	}
 	len += len & 1;
-	s = _pico_alloc( len );
+	s = (char *)_pico_alloc( len );
 	if ( !s ) {
 		flen = FLEN_ERROR;
 		return NULL;
