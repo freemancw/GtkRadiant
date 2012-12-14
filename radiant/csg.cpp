@@ -54,169 +54,174 @@ void CSG_MakeHollow()
             if(front)
                 Brush_AddToList(front, &selected_brushes);
         }
-
         Brush_Free(b);
     }
     Sys_UpdateWindows(W_ALL);
 }
 
-/*
-   =============
-   Brush_Merge
+/*!
+*  Brush_Merge
+*
+*  Returns a new brush that is created by merging brush1 and brush2. May 
+*  return NULL if brush1 and brush2 do not create a convex brush when merged. 
+*  Input brushes brush1 and brush2 stay intact.
+*
+*  If onlyshape is true then the merge is allowed based on the shape only,
+*  otherwise the texture/shader references of faces in the same plane have to
+*  be the same as well.
+*/
+brush_t *Brush_Merge(brush_t *brush1, brush_t *brush2, bool onlyshape)
+{
+    brush_t     *newbrush;
+    face_t      *face1, *face2, *newface, *f;
 
-   Returns a new brush that is created by merging brush1 and brush2.
-   May return NULL if brush1 and brush2 do not create a convex brush when merged.
-   The input brushes brush1 and brush2 stay intact.
+    // check for bounding box overlap
+    for(int i = 0; i < 3; ++i)
+    {
+        // never merge if brushes overlap
+        if(brush1->mins[i] > brush2->maxs[i] + ON_EPSILON || 
+           brush1->maxs[i] < brush2->mins[i] - ON_EPSILON) 
+        {
+            return NULL;
+        }
+    }
 
-   if onlyshape is true then the merge is allowed based on the shape only
-   otherwise the texture/shader references of faces in the same plane have to
-   be the same as well.
-   =============
- */
-brush_t *Brush_Merge( brush_t *brush1, brush_t *brush2, int onlyshape ){
-	int i, shared;
-	brush_t *newbrush;
-	face_t *face1, *face2, *newface, *f;
+    int shared = 0;
 
-	// check for bounding box overlapp
-	for ( i = 0; i < 3; i++ )
-	{
-		if ( brush1->mins[i] > brush2->maxs[i] + ON_EPSILON
-			 || brush1->maxs[i] < brush2->mins[i] - ON_EPSILON ) {
-			// never merge if the brushes overlap
-			return NULL;
-		}
-	}
-	//
-	shared = 0;
-	// check if the new brush would be convex... flipped planes make a brush non-convex
-	for ( face1 = brush1->brush_faces; face1; face1 = face1->next )
-	{
-		// don't check the faces of brush 1 and 2 touching each other
-		for ( face2 = brush2->brush_faces; face2; face2 = face2->next )
-		{
-			if ( Plane_Equal( &face1->plane, &face2->plane, true ) ) {
-				shared++;
-				// there may only be ONE shared side
-				if ( shared > 1 ) {
-					return NULL;
-				}
-				break;
-			}
-		}
-		// if this face plane is shared
-		if ( face2 ) {
-			continue;
-		}
-		//
-		for ( face2 = brush2->brush_faces; face2; face2 = face2->next )
-		{
-			// don't check the faces of brush 1 and 2 touching each other
-			for ( f = brush1->brush_faces; f; f = f->next )
-			{
-				if ( Plane_Equal( &face2->plane, &f->plane, true ) ) {
-					break;
-				}
-			}
-			if ( f ) {
-				continue;
-			}
-			//
-			if ( Plane_Equal( &face1->plane, &face2->plane, false ) ) {
-				//if the texture/shader references should be the same but are not
-				if ( !onlyshape && stricmp( face1->texdef.GetName(), face2->texdef.GetName() ) != 0 ) {
-					return NULL;
-				}
-				continue;
-			}
-			//
-			if ( Winding_PlanesConcave( face1->face_winding, face2->face_winding,
-										face1->plane.normal, face2->plane.normal,
-										face1->plane.dist, face2->plane.dist ) ) {
-				return NULL;
-			} //end if
-		} //end for
-	} //end for
-	  //
-	newbrush = Brush_Alloc();
-	//
-	for ( face1 = brush1->brush_faces; face1; face1 = face1->next )
-	{
-		// don't add the faces of brush 1 and 2 touching each other
-		for ( face2 = brush2->brush_faces; face2; face2 = face2->next )
-		{
-			if ( Plane_Equal( &face1->plane, &face2->plane, true ) ) {
-				break;
-			}
-		}
-		if ( face2 ) {
-			continue;
-		}
-		// don't add faces with the same plane twice
-		for ( f = newbrush->brush_faces; f; f = f->next )
-		{
-			if ( Plane_Equal( &face1->plane, &f->plane, false ) ) {
-				break;
-			}
-			if ( Plane_Equal( &face1->plane, &f->plane, true ) ) {
-				break;
-			}
-		}
-		if ( f ) {
-			continue;
-		}
-		//
-		newface = Face_Alloc();
-		newface->texdef = face1->texdef;
-		VectorCopy( face1->planepts[0], newface->planepts[0] );
-		VectorCopy( face1->planepts[1], newface->planepts[1] );
-		VectorCopy( face1->planepts[2], newface->planepts[2] );
-		newface->plane = face1->plane;
-		newface->next = newbrush->brush_faces;
-		newbrush->brush_faces = newface;
-	}
-	//
-	for ( face2 = brush2->brush_faces; face2; face2 = face2->next )
-	{
-		// don't add the faces of brush 1 and 2 touching each other
-		for ( face1 = brush1->brush_faces; face1; face1 = face1->next )
-		{
-			if ( Plane_Equal( &face2->plane, &face1->plane, true ) ) {
-				break;
-			}
-		}
-		if ( face1 ) {
-			continue;
-		}
-		// don't add faces with the same plane twice
-		for ( f = newbrush->brush_faces; f; f = f->next )
-		{
-			if ( Plane_Equal( &face2->plane, &f->plane, false ) ) {
-				break;
-			}
-			if ( Plane_Equal( &face2->plane, &f->plane, true ) ) {
-				break;
-			}
-		}
-		if ( f ) {
-			continue;
-		}
-		//
-		newface = Face_Alloc();
-		newface->texdef = face2->texdef;
-		VectorCopy( face2->planepts[0], newface->planepts[0] );
-		VectorCopy( face2->planepts[1], newface->planepts[1] );
-		VectorCopy( face2->planepts[2], newface->planepts[2] );
-		newface->plane = face2->plane;
-		newface->next = newbrush->brush_faces;
-		newbrush->brush_faces = newface;
-	}
-	// link the new brush to an entity
-	Entity_LinkBrush( brush1->owner, newbrush );
-	// build windings for the faces
-	Brush_BuildWindings( newbrush, false );
+    // check if the new brush would be convex... flipped planes make a brush 
+    // non-convex
+    for(face1 = brush1->brush_faces; face1; face1 = face1->next)
+    {
+        // don't check the faces of brush 1 and 2 touching each other
+        for(face2 = brush2->brush_faces; face2; face2 = face2->next)
+        {
+            if(Plane_Equal(&face1->plane, &face2->plane, true)) 
+            {
+                shared++;
 
-	return newbrush;
+                // there may only be ONE shared side
+                if(shared > 1)
+                    return NULL;
+          
+                break;
+            }
+        }
+
+        // if this face plane is shared
+        if(face2)
+            continue;
+
+        for(face2 = brush2->brush_faces; face2; face2 = face2->next)
+        {
+            // don't check the faces of brush 1 and 2 touching each other
+            for (f = brush1->brush_faces; f; f = f->next)
+            {
+                if(Plane_Equal(&face2->plane, &f->plane, true))
+                    break;
+            }
+
+            if(f) 
+                continue;
+
+            if(Plane_Equal(&face1->plane, &face2->plane, false))
+            {
+                // if the tex/shader references should be the same but are not
+                if(!onlyshape && stricmp(face1->texdef.GetName(), 
+                                         face2->texdef.GetName()) != 0) 
+                {
+                    return NULL;
+                }
+
+                continue;
+            }
+            
+            if ( Winding_PlanesConcave( face1->face_winding, face2->face_winding,
+                face1->plane.normal, face2->plane.normal,
+                face1->plane.dist, face2->plane.dist ) ) {
+                    return NULL;
+            } //end if
+        } //end for
+    } //end for
+    //
+    newbrush = Brush_Alloc();
+    //
+    for ( face1 = brush1->brush_faces; face1; face1 = face1->next )
+    {
+        // don't add the faces of brush 1 and 2 touching each other
+        for ( face2 = brush2->brush_faces; face2; face2 = face2->next )
+        {
+            if ( Plane_Equal( &face1->plane, &face2->plane, true ) ) {
+                break;
+            }
+        }
+        if ( face2 ) {
+            continue;
+        }
+        // don't add faces with the same plane twice
+        for ( f = newbrush->brush_faces; f; f = f->next )
+        {
+            if ( Plane_Equal( &face1->plane, &f->plane, false ) ) {
+                break;
+            }
+            if ( Plane_Equal( &face1->plane, &f->plane, true ) ) {
+                break;
+            }
+        }
+        if ( f ) {
+            continue;
+        }
+        //
+        newface = Face_Alloc();
+        newface->texdef = face1->texdef;
+        VectorCopy( face1->planepts[0], newface->planepts[0] );
+        VectorCopy( face1->planepts[1], newface->planepts[1] );
+        VectorCopy( face1->planepts[2], newface->planepts[2] );
+        newface->plane = face1->plane;
+        newface->next = newbrush->brush_faces;
+        newbrush->brush_faces = newface;
+    }
+    //
+    for ( face2 = brush2->brush_faces; face2; face2 = face2->next )
+    {
+        // don't add the faces of brush 1 and 2 touching each other
+        for ( face1 = brush1->brush_faces; face1; face1 = face1->next )
+        {
+            if ( Plane_Equal( &face2->plane, &face1->plane, true ) ) {
+                break;
+            }
+        }
+        if ( face1 ) {
+            continue;
+        }
+        // don't add faces with the same plane twice
+        for ( f = newbrush->brush_faces; f; f = f->next )
+        {
+            if ( Plane_Equal( &face2->plane, &f->plane, false ) ) {
+                break;
+            }
+            if ( Plane_Equal( &face2->plane, &f->plane, true ) ) {
+                break;
+            }
+        }
+        if ( f ) {
+            continue;
+        }
+        //
+        newface = Face_Alloc();
+        newface->texdef = face2->texdef;
+        VectorCopy( face2->planepts[0], newface->planepts[0] );
+        VectorCopy( face2->planepts[1], newface->planepts[1] );
+        VectorCopy( face2->planepts[2], newface->planepts[2] );
+        newface->plane = face2->plane;
+        newface->next = newbrush->brush_faces;
+        newbrush->brush_faces = newface;
+    }
+    // link the new brush to an entity
+    Entity_LinkBrush( brush1->owner, newbrush );
+    // build windings for the faces
+    Brush_BuildWindings( newbrush, false );
+
+    return newbrush;
 }
 
 /*
@@ -229,7 +234,7 @@ brush_t *Brush_Merge( brush_t *brush1, brush_t *brush2, int onlyshape ){
    Input and output should be a single linked list using .next
    =============
  */
-brush_t *Brush_MergeListPairs( brush_t *brushlist, int onlyshape ){
+brush_t *Brush_MergeListPairs( brush_t *brushlist, bool onlyshape){
 	int nummerges, merged;
 	brush_t *b1, *b2, *tail, *newbrush, *newbrushlist;
 	brush_t *lastb2;
