@@ -28,36 +28,36 @@
  */
 void CSG_MakeHollow()
 {
-	brush_t     *b, *front, *back, *next;
-	face_t      *f, split;
-	vec3_t      move;
+    brush_t     *b, *front, *back, *next;
+    face_t      *f, split;
+    vec3_t      move;
 
-	for(b = selected_brushes.next; b != &selected_brushes; b = next)
-	{
-		next = b->next;
+    for(b = selected_brushes.next; b != &selected_brushes; b = next)
+    {
+        next = b->next;
 
-		if(b->owner->eclass->fixedsize || b->patchBrush || b->bFiltered)
-			continue;
+        if(b->owner->eclass->fixedsize || b->patchBrush || b->bFiltered)
+            continue;
 
-		for(f = b->brush_faces; f; f = f->next)
-		{
-			split = *f;
-			VectorScale(f->plane.normal, g_qeglobals.d_gridsize, move);
-			for(int i = 0; i < 3; ++i)
-				VectorSubtract(split.planepts[i], move, split.planepts[i]);
+        for(f = b->brush_faces; f; f = f->next)
+        {
+            split = *f;
+            VectorScale(f->plane.normal, g_qeglobals.d_gridsize, move);
+            for(int i = 0; i < 3; ++i)
+                VectorSubtract(split.planepts[i], move, split.planepts[i]);
 
-			Brush_SplitBrushByFace(b, &split, &front, &back);
-			
+            Brush_SplitBrushByFace(b, &split, &front, &back);
+            
             if(back)
-				Brush_Free(back);
-	
-			if(front)
-				Brush_AddToList(front, &selected_brushes);
-		}
+                Brush_Free(back);
+    
+            if(front)
+                Brush_AddToList(front, &selected_brushes);
+        }
 
-		Brush_Free(b);
-	}
-	Sys_UpdateWindows(W_ALL);
+        Brush_Free(b);
+    }
+    Sys_UpdateWindows(W_ALL);
 }
 
 /*
