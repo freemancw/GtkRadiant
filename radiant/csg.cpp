@@ -135,14 +135,15 @@ brush_t *Brush_Merge(brush_t *brush1, brush_t *brush2, bool onlyshape)
                 continue;
             }
             
-            if ( Winding_PlanesConcave( face1->face_winding, face2->face_winding,
-                face1->plane.normal, face2->plane.normal,
-                face1->plane.dist, face2->plane.dist ) ) {
+            if(Winding_PlanesConcave(face1->face_winding, face2->face_winding,
+                                     face1->plane.normal, face2->plane.normal,
+                                     face1->plane.dist, face2->plane.dist)) 
+            {
                     return NULL;
-            } //end if
-        } //end for
-    } //end for
-    //
+            }
+        } 
+    }
+    
     newbrush = Brush_Alloc();
     //
     for ( face1 = brush1->brush_faces; face1; face1 = face1->next )
