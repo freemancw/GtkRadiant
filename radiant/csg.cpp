@@ -23,55 +23,41 @@
 #include "winding.h"
 #include "filters.h"
 
-/*
-   =============
-   CSG_MakeHollow
-   =============
+/*!
+ *  CSG_MakeHollow
  */
-
-void Brush_Scale( brush_t* b ){
-	for ( face_t* f = b->brush_faces ; f ; f = f->next )
-	{
-		for ( int i = 0 ; i < 3 ; i++ )
-		{
-			VectorScale( f->planepts[i], g_qeglobals.d_gridsize, f->planepts[i] );
-		}
-	}
-}
-
-void CSG_MakeHollow( void ){
+void CSG_MakeHollow()
+{
 	brush_t     *b, *front, *back, *next;
-	face_t      *f;
-	face_t split;
-	vec3_t move;
-	int i;
+	face_t      *f, split;
+	vec3_t      move;
 
-	for ( b = selected_brushes.next ; b != &selected_brushes ; b = next )
+	for(b = selected_brushes.next; b != &selected_brushes; b = next)
 	{
 		next = b->next;
 
-		if ( b->owner->eclass->fixedsize || b->patchBrush || b->bFiltered ) {
+		if(b->owner->eclass->fixedsize || b->patchBrush || b->bFiltered)
 			continue;
-		}
 
-		for ( f = b->brush_faces ; f ; f = f->next )
+		for(f = b->brush_faces; f; f = f->next)
 		{
 			split = *f;
-			VectorScale( f->plane.normal, g_qeglobals.d_gridsize, move );
-			for ( i = 0 ; i < 3 ; i++ )
-				VectorSubtract( split.planepts[i], move, split.planepts[i] );
+			VectorScale(f->plane.normal, g_qeglobals.d_gridsize, move);
+			for(int i = 0; i < 3; ++i)
+				VectorSubtract(split.planepts[i], move, split.planepts[i]);
 
-			Brush_SplitBrushByFace( b, &split, &front, &back );
-			if ( back ) {
-				Brush_Free( back );
-			}
-			if ( front ) {
-				Brush_AddToList( front, &selected_brushes );
-			}
+			Brush_SplitBrushByFace(b, &split, &front, &back);
+			
+            if(back)
+				Brush_Free(back);
+	
+			if(front)
+				Brush_AddToList(front, &selected_brushes);
 		}
-		Brush_Free( b );
+
+		Brush_Free(b);
 	}
-	Sys_UpdateWindows( W_ALL );
+	Sys_UpdateWindows(W_ALL);
 }
 
 /*
