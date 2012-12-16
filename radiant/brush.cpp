@@ -851,74 +851,72 @@ void Brush_SnapPlanepts( brush_t *b ){
 	}
 }
 
-/*
-** Brush_Build
-**
-** Builds a brush rendering data and also sets the min/max bounds
-*/
-// TTimo
-// added a bConvert flag to convert between old and new brush texture formats
-// TTimo
-// brush grouping: update the group treeview if necessary
-void Brush_Build( brush_t *b, bool bSnap, bool bMarkMap, bool bConvert, bool bFilterTest ){
-	bool bLocalConvert;
-
+/*!
+ *  Brush_Build
+ *  Builds a brush rendering data and also sets the min/max bounds.
+ *  TTimo: bConvert switches between old and new brush texture formats. 
+ *  TTimo: Brush grouping: update the group treeview if necessary.
+ */
+void Brush_Build(brush_t *b, bool bSnap, bool bMarkMap, bool bConvert, 
+                 bool bFilterTest)
+{
+    bool bLocalConvert;
 
 #ifdef _DEBUG
-	if ( !g_qeglobals.m_bBrushPrimitMode && bConvert ) {
-		Sys_Printf( "Warning : conversion from brush primitive to old brush format not implemented\n" );
-	}
+    if(!g_qeglobals.m_bBrushPrimitMode && bConvert)
+    {
+        Sys_Printf("Warning : conversion from brush primitive to old brush "
+                   "format not implemented\n");
+    }
 #endif
 
-	// if bConvert is set and g_qeglobals.bNeedConvert is not, that just means we need convert for this brush only
-	if ( bConvert && !g_qeglobals.bNeedConvert ) {
+    // if bConvert is set and g_qeglobals.bNeedConvert is not, that just means 
+    // we need convert for this brush only
+    if(bConvert && !g_qeglobals.bNeedConvert)
+    {
 #ifdef _DEBUG
-		//++timo FIXME: it's not very clear when this can happen, I guess while dealing with plugins that send brushes
-		// back and forth in one format or the other .. more when mixing BP / noBP in the same maps.
+        //++timo FIXME: it's not very clear when this can happen, I guess 
+        // while dealing with plugins that send brushes back and forth in one 
+        // format or the other .. more when mixing BP / noBP in the same maps.
 #endif
-		bLocalConvert = true;
-		g_qeglobals.bNeedConvert = true;
-	}
-	else{
-		bLocalConvert = false;
-	}
+        bLocalConvert = true;
+        g_qeglobals.bNeedConvert = true;
+    }
+    else
+    {
+        bLocalConvert = false;
+    }
 
-	/*
-	** build the windings and generate the bounding box
-	*/
-	Brush_BuildWindings( b, bSnap );
+    // build the windings and generate the bounding box
+    Brush_BuildWindings(b, bSnap);
 
-	if ( b->owner->model.pRender ) {
-		const aabb_t *aabb = b->owner->model.pRender->GetAABB();
-		VectorAdd( aabb->origin, aabb->extents, b->maxs );
-		VectorSubtract( aabb->origin, aabb->extents, b->mins );
-	}
+    if(b->owner->model.pRender) 
+    {
+        const aabb_t *aabb = b->owner->model.pRender->GetAABB();
+        VectorAdd(aabb->origin, aabb->extents, b->maxs);
+        VectorSubtract(aabb->origin, aabb->extents, b->mins);
+    }
 
-	//Patch_BuildPoints (b); // does nothing but set b->patchBrush true if the texdef contains SURF_PATCH !
+    // move the points and edges if in select mode
+    if(g_qeglobals.d_select_mode == sel_vertex || 
+       g_qeglobals.d_select_mode == sel_edge) 
+    {
+        SetupVertexSelection();
+    }
 
-	/*
-	** move the points and edges if in select mode
-	*/
-	if ( g_qeglobals.d_select_mode == sel_vertex || g_qeglobals.d_select_mode == sel_edge ) {
-		SetupVertexSelection();
-	}
+    if(b->itemOwner == 0) 
+        Group_AddToProperGroup(b);
 
-	if ( b->itemOwner == 0 ) { //NULL)
-		Group_AddToProperGroup( b );
-	}
+    if(bMarkMap)
+        Sys_MarkMapModified();
 
-	if ( bMarkMap ) {
-		Sys_MarkMapModified();
-	}
+    if(bLocalConvert)
+        g_qeglobals.bNeedConvert = false;
 
-	if ( bLocalConvert ) {
-		g_qeglobals.bNeedConvert = false;
-	}
-
-	// spog - applying filters to brush during brush_build instead of during redraw
-	if ( bFilterTest ) {
-		b->bFiltered = FilterBrush( b );
-	}
+    // spog - applying filters to brush during brush_build instead of during 
+    // redraw
+    if(bFilterTest)
+        b->bFiltered = FilterBrush(b);
 }
 
 /*!
@@ -2731,102 +2729,106 @@ void Brush_SetBuildWindingsNoTexBuild( bool bBuild ){
 	g_bBuildWindingsNoTexBuild = bBuild;
 }
 
-// TTimo: don't rebuild pShader and d_texture if it doesn't seem necessary
-//    saves quite a lot of time, but on the other hand we've gotta make sure we clean the d_texture in some cases
-//    ie when we want to update a shader
-//    default will make Radiant rebuild the texture, but it can be turned off by setting the flag g_bBuildWindingsNoTexBuild
-void Brush_BuildWindings( brush_t *b, bool bSnap ){
-	winding_t *w;
-	face_t    *face;
-	vec_t v;
+/*!
+ *  Brush_BuildWindings
+ *  TTimo: don't rebuild pShader and d_texture if it doesn't seem necessary
+ *  saves quite a lot of time, but on the other hand we've gotta make sure we 
+ *  clean the d_texture in some cases, i.e. when we want to update a shader
+ *  default will make Radiant rebuild the texture, but it can be turned off by 
+ *  setting the flag g_bBuildWindingsNoTexBuild
+ */
+void Brush_BuildWindings(brush_t *b, bool bSnap)
+{
+    winding_t   *w;
+    face_t      *face;
+    vec_t       v;
 
-	if ( bSnap ) {
-		Brush_SnapPlanepts( b );
-	}
+    if(bSnap)
+        Brush_SnapPlanepts(b);
 
-	// clear the mins/maxs bounds
-	b->mins[0] = b->mins[1] = b->mins[2] = 99999;
-	b->maxs[0] = b->maxs[1] = b->maxs[2] = -99999;
+    // clear the mins/maxs bounds
+    b->mins[0] = b->mins[1] = b->mins[2] =  99999;
+    b->maxs[0] = b->maxs[1] = b->maxs[2] = -99999;
 
-	Brush_MakeFacePlanes( b );
+    Brush_MakeFacePlanes(b);
 
-	face = b->brush_faces;
+    face = b->brush_faces;
 
-	float fCurveColor = 1.0;
+    float fCurveColor = 1.0;
 
-	for ( ; face ; face = face->next )
-	{
-		int i, j;
-		free( face->face_winding );
-		w = face->face_winding = Brush_MakeFaceWinding( b, face );
+    for(; face; face = face->next)
+    {
+        int i, j;
+        free( face->face_winding );
+        w = face->face_winding = Brush_MakeFaceWinding( b, face );
 
-		if ( !g_bBuildWindingsNoTexBuild || !face->d_texture ) {
+        if ( !g_bBuildWindingsNoTexBuild || !face->d_texture ) {
 #ifdef _DEBUG
-			// if there's no d_texture, then we expect pShader to be empty
-			if ( !face->d_texture && face->pShader ) {
-				Sys_FPrintf( SYS_ERR, "ERROR: unexpected face->pShader != NULL with face->d_texture == NULL in Brush_BuildWindings\n" );
-			}
+            // if there's no d_texture, then we expect pShader to be empty
+            if ( !face->d_texture && face->pShader ) {
+                Sys_FPrintf( SYS_ERR, "ERROR: unexpected face->pShader != NULL with face->d_texture == NULL in Brush_BuildWindings\n" );
+            }
 #endif
-			if ( ( !face->d_texture && !face->pShader ) || !face->pShader ) {
-				// NOTE TTimo
-				// patch 84 for bug 253 doesn't dec ref the potential face->pShader
-				// add a debug check to make sure this is actually not necessary
+            if ( ( !face->d_texture && !face->pShader ) || !face->pShader ) {
+                // NOTE TTimo
+                // patch 84 for bug 253 doesn't dec ref the potential face->pShader
+                // add a debug check to make sure this is actually not necessary
 #ifdef _DEBUG
-				if ( face->pShader ) {
-					Sys_FPrintf( SYS_ERR, "ERROR: face->pShader != NULL in Brush_BuildWindings\n" );
-				}
+                if ( face->pShader ) {
+                    Sys_FPrintf( SYS_ERR, "ERROR: face->pShader != NULL in Brush_BuildWindings\n" );
+                }
 #endif
-				face->pShader = QERApp_Shader_ForName( face->texdef.GetName() );
-				face->pShader->IncRef();
-				face->d_texture = face->pShader->getTexture();
-			}
-		}
+                face->pShader = QERApp_Shader_ForName( face->texdef.GetName() );
+                face->pShader->IncRef();
+                face->d_texture = face->pShader->getTexture();
+            }
+        }
 
-		if ( !w ) {
-			continue;
-		}
+        if ( !w ) {
+            continue;
+        }
 
-		for ( i = 0 ; i < w->numpoints ; i++ )
-		{
-			// add to bounding box
-			for ( j = 0 ; j < 3 ; j++ )
-			{
-				v = w->points[i][j];
-				if ( v > b->maxs[j] ) {
-					b->maxs[j] = v;
-				}
-				if ( v < b->mins[j] ) {
-					b->mins[j] = v;
-				}
-			}
-		}
-		Face_SetColor( b, face, fCurveColor );
+        for ( i = 0 ; i < w->numpoints ; i++ )
+        {
+            // add to bounding box
+            for ( j = 0 ; j < 3 ; j++ )
+            {
+                v = w->points[i][j];
+                if ( v > b->maxs[j] ) {
+                    b->maxs[j] = v;
+                }
+                if ( v < b->mins[j] ) {
+                    b->mins[j] = v;
+                }
+            }
+        }
+        Face_SetColor( b, face, fCurveColor );
 
-		fCurveColor -= .10f;
-		if ( fCurveColor <= 0 ) {
-			fCurveColor = 1.0f;
-		}
+        fCurveColor -= .10f;
+        if ( fCurveColor <= 0 ) {
+            fCurveColor = 1.0f;
+        }
 
-		// computing ST coordinates for the windings
-		if ( g_qeglobals.m_bBrushPrimitMode ) {
-			if ( g_qeglobals.bNeedConvert ) {
-				// we have parsed old brushes format and need conversion
-				// convert old brush texture representation to new format
-				FaceToBrushPrimitFace( face );
+        // computing ST coordinates for the windings
+        if ( g_qeglobals.m_bBrushPrimitMode ) {
+            if ( g_qeglobals.bNeedConvert ) {
+                // we have parsed old brushes format and need conversion
+                // convert old brush texture representation to new format
+                FaceToBrushPrimitFace( face );
 #ifdef _DEBUG
-				// use old texture coordinates code to check against
-				for ( i = 0 ; i < w->numpoints ; i++ )
-					EmitTextureCoordinates( w->points[i], face->d_texture, face );
+                // use old texture coordinates code to check against
+                for ( i = 0 ; i < w->numpoints ; i++ )
+                    EmitTextureCoordinates( w->points[i], face->d_texture, face );
 #endif
-			}
-			// use new texture representation to compute texture coordinates
-			// in debug mode we will check against old code and warn if there are differences
-			EmitBrushPrimitTextureCoordinates( face,w );
-		}
-		else
-		{
-			if ( g_qeglobals.bNeedConvert ) {
-				BrushPrimitFaceToFace( face );
+            }
+            // use new texture representation to compute texture coordinates
+            // in debug mode we will check against old code and warn if there are differences
+            EmitBrushPrimitTextureCoordinates( face,w );
+        }
+        else
+        {
+            if ( g_qeglobals.bNeedConvert ) {
+                BrushPrimitFaceToFace( face );
 /*
         // we have parsed brush primitives and need conversion back to standard format
         // NOTE: converting back is a quick hack, there's some information lost and we can't do anything about it
@@ -2838,11 +2840,11 @@ void Brush_BuildWindings( brush_t *b, bool bSnap ){
                 face->texdef.scale[0]/=2.0;
                 face->texdef.scale[1]/=2.0;
  */
-			}
-			for ( i = 0 ; i < w->numpoints ; i++ )
-				EmitTextureCoordinates( w->points[i], face->d_texture, face );
-		}
-	}
+            }
+            for ( i = 0 ; i < w->numpoints ; i++ )
+                EmitTextureCoordinates( w->points[i], face->d_texture, face );
+        }
+    }
 }
 
 /*
