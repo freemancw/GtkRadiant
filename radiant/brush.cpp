@@ -2750,7 +2750,7 @@ void Brush_BuildWindings(brush_t *b, bool bSnap)
     b->mins[0] = b->mins[1] = b->mins[2] =  99999;
     b->maxs[0] = b->maxs[1] = b->maxs[2] = -99999;
 
-    Brush_MakeFacePlanes(b);
+    Brush_MakeFacePlanes(b); 
 
     face = b->brush_faces;
 
