@@ -921,66 +921,73 @@ void Brush_Build( brush_t *b, bool bSnap, bool bMarkMap, bool bConvert, bool bFi
 	}
 }
 
-/*
-   ==============
-   Brush_SplitBrushByFace
-
-   The incoming brush is NOT freed.
-   The incoming face is NOT left referenced.
-   ==============
+/*!
+ *  Brush_SplitBrushByFace
+ *  The incoming brush is NOT freed. The incoming face is NOT left referenced.
  */
-void Brush_SplitBrushByFace( brush_t *in, face_t *f, brush_t **front, brush_t **back, qboolean bCaulk ){
-	brush_t *b;
-	face_t  *nf;
-	vec3_t temp;
+void Brush_SplitBrushByFace(brush_t *in, face_t *f, brush_t **front, 
+                            brush_t **back, bool bCaulk)
+{
+    brush_t *b;
+    face_t  *nf;
+    vec3_t temp;
 
-	b = Brush_Clone( in );
-	nf = Face_Clone( f );
+    b = Brush_Clone(in);
+    nf = Face_Clone(f);
 
-	nf->texdef = b->brush_faces->texdef;
-	if ( bCaulk ) {
-		nf->texdef.SetName( g_pGameDescription->mCaulkShader.GetBuffer() );
-	}
-	nf->next = b->brush_faces;
-	b->brush_faces = nf;
+    nf->texdef = b->brush_faces->texdef;
 
-	Brush_Build( b );
-	Brush_RemoveEmptyFaces( b );
-	if ( !b->brush_faces ) { // completely clipped away
-		Brush_Free( b );
-		*back = NULL;
-	}
-	else
-	{
-		Entity_LinkBrush( in->owner, b );
-		*back = b;
-	}
+    if(bCaulk)
+        nf->texdef.SetName(g_pGameDescription->mCaulkShader.GetBuffer());
+ 
+    nf->next = b->brush_faces;
+    b->brush_faces = nf;
 
-	b = Brush_Clone( in );
-	nf = Face_Clone( f );
-	// swap the plane winding
-	VectorCopy( nf->planepts[0], temp );
-	VectorCopy( nf->planepts[1], nf->planepts[0] );
-	VectorCopy( temp, nf->planepts[1] );
+    Brush_Build(b);
+    Brush_RemoveEmptyFaces(b);
+    
+    // completely clipped away
+    if(!b->brush_faces) 
+    { 
+        Brush_Free(b);
+        *back = NULL;
+    }
+    else
+    {
+        Entity_LinkBrush(in->owner, b);
+        *back = b;
+    }
 
-	nf->texdef = b->brush_faces->texdef;
-	if ( bCaulk ) {
-		nf->texdef.SetName( g_pGameDescription->mCaulkShader.GetBuffer() );
-	}
-	nf->next = b->brush_faces;
-	b->brush_faces = nf;
+    b = Brush_Clone(in);
+    nf = Face_Clone(f);
+    
+    // swap the plane winding
+    VectorCopy(nf->planepts[0], temp);
+    VectorCopy(nf->planepts[1], nf->planepts[0]);
+    VectorCopy(temp, nf->planepts[1]);
 
-	Brush_Build( b );
-	Brush_RemoveEmptyFaces( b );
-	if ( !b->brush_faces ) { // completely clipped away
-		Brush_Free( b );
-		*front = NULL;
-	}
-	else
-	{
-		Entity_LinkBrush( in->owner, b );
-		*front = b;
-	}
+    nf->texdef = b->brush_faces->texdef;
+    
+    if(bCaulk)
+        nf->texdef.SetName(g_pGameDescription->mCaulkShader.GetBuffer());
+    
+    nf->next = b->brush_faces;
+    b->brush_faces = nf;
+
+    Brush_Build(b);
+    Brush_RemoveEmptyFaces(b);
+
+    // completely clipped away
+    if(!b->brush_faces)
+    { 
+        Brush_Free(b);
+        *front = NULL;
+    }
+    else
+    {
+        Entity_LinkBrush(in->owner, b);
+        *front = b;
+    }
 }
 
 /*
