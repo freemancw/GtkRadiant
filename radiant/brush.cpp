@@ -26,61 +26,55 @@
 #include "filters.h"
 
 extern MainFrame* g_pParentWnd;
-extern void MemFile_fprintf( MemStream* pMemFile, const char* pText, ... );
+extern void MemFile_fprintf(MemStream* pMemFile, const char* pText, ...);
 
 // globals
 
 int g_nBrushId = 0;
 
 #ifdef ENABLE_GROUPS
-const char* Brush_Name( brush_t *b ){
-	static char cBuff[1024];
-	b->numberId = g_nBrushId++;
-	if ( g_qeglobals.m_bBrushPrimitMode ) {
-		sprintf( cBuff, "Brush %i", b->numberId );
-		Brush_SetEpair( b, "Name", cBuff );
-	}
-	return cBuff;
+const char* Brush_Name(brush_t *b)
+{
+    static char cBuff[1024];
+    b->numberId = g_nBrushId++;
+    if(g_qeglobals.m_bBrushPrimitMode) 
+    {
+        sprintf(cBuff, "Brush %i", b->numberId);
+        Brush_SetEpair(b, "Name", cBuff);
+    }
+    return cBuff;
 }
 #endif
 
-brush_t *Brush_Alloc(){
-	brush_t *b = (brush_t*)qmalloc( sizeof( brush_t ) );
-	return b;
-}
-/*
-   void Brush_Free(brush_t *b)
-   {
-   free(b);
-   }
- */
-void PrintWinding( winding_t *w ){
-	int i;
-
-	Sys_Printf( "-------------\n" );
-	for ( i = 0 ; i < w->numpoints ; i++ )
-		Sys_Printf( "(%5.2f, %5.2f, %5.2f)\n", w->points[i][0]
-					, w->points[i][1], w->points[i][2] );
+brush_t *Brush_Alloc()
+{
+    return (brush_t*)qmalloc(sizeof(brush_t));
 }
 
-void PrintPlane( plane_t *p ){
-	Sys_Printf( "(%5.2f, %5.2f, %5.2f) : %5.2f\n",  p->normal[0],  p->normal[1],
-				p->normal[2],  p->dist );
+void PrintWinding(const winding_t * const w)
+{
+    Sys_Printf("---------------------------------------------------------\n");
+    for(int i = 0; i < w->numpoints; ++i)
+    {
+        Sys_Printf("(%5.2f, %5.2f, %5.2f)\n", w->points[i][0], 
+                   w->points[i][1], w->points[i][2]);
+    }
 }
 
-void PrintVector( vec3_t v ){
-	Sys_Printf( "(%5.2f, %5.2f, %5.2f)\n",  v[0],  v[1], v[2] );
+void PrintPlane(const plane_t * const p)
+{
+    Sys_Printf("(%5.2f, %5.2f, %5.2f) : %5.2f\n", p->normal[0], p->normal[1],
+               p->normal[2], p->dist);
 }
 
+void PrintVector(const vec3_t v)
+{
+    Sys_Printf("(%5.2f, %5.2f, %5.2f)\n", v[0], v[1], v[2]);
+}
 
-/*
-   =============================================================================
-
-            TEXTURE COORDINATES
-
-   =============================================================================
- */
-
+//============================================================================
+// TEXTURE COORDINATES
+//============================================================================
 
 /*
    ==================
@@ -534,6 +528,37 @@ void Face_MakePlane(face_t *f)
     VectorNormalize(f->plane.normal, f->plane.normal);
     f->plane.dist = DotProduct(t3, f->plane.normal);
 }
+
+/*!
+ *  Face_MakePlaneCP
+ *  Constructs a plane normal through the cross product of two edge vectors,
+ *  and computes the distance by projecting a point onto the normal.
+ */
+void Face_MakePlaneCP(face_t * const f)
+{
+    vec3_t v0, v1, ptOnPlane;
+
+    VectorSubtract(f->planepts[0], f->planepts[1], v0);
+    VectorSubtract(f->planepts[2], f->planepts[1], v1);
+    VectorCopy(f->planepts[1], ptOnPlane);
+
+    CrossProduct(v0, v1, f->plane.normal);
+
+    if(VectorCompare(f->plane.normal, vec3_origin))
+        Sys_FPrintf(SYS_WRN, "WARNING: brush plane with no normal\n");
+    
+    VectorNormalize(f->plane.normal, f->plane.normal);
+    f->plane.dist = DotProduct(ptOnPlane, f->plane.normal);
+}
+
+/*!
+ *  Face_MakePlaneNewell
+ */
+void Face_MakePlaneNewell(face_t * const f)
+{
+
+}
+
 
 /*
    ================
