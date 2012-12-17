@@ -22,14 +22,14 @@
 
 // brush.h
 
-// some usefull flags to control the behaviour of Brush_Build
+// some useful flags to control the behaviour of Brush_Build
 extern bool g_bBuildWindingsNoTexBuild;
 
 void        Brush_AddToList( brush_t *b, brush_t *lst );
 void        Brush_Build( brush_t *b, bool bSnap = true, bool bMarkMap = true, bool bConvert = false, bool bFilterTest = true );
 void    Brush_SetBuildWindingsNoTexBuild( bool bBuild );
 void        Brush_BuildWindings( brush_t *b, bool bSnap = true );
-brush_t*    Brush_Clone( brush_t *b );
+brush_t*    Brush_Clone(const brush_t * const b);
 brush_t*    Brush_FullClone( brush_t *b );
 brush_t*    Brush_Create( vec3_t mins, vec3_t maxs, texdef_t *texdef );
 void    Brush_Resize( brush_t *b, vec3_t vMin, vec3_t vMax );

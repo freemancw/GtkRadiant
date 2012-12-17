@@ -2004,37 +2004,36 @@ int Brush_MemorySize( brush_t *b ){
 }
 
 
-/*
-   ============
-   Brush_Clone
-
-   Does NOT add the new brush to any lists
-   ============
+/*!
+ *  Brush_Clone
+ *  Does NOT add the new brush to any lists.
  */
-brush_t *Brush_Clone( brush_t *b ){
-	brush_t *n = NULL;
-	face_t  *f, *nf;
+brush_t *Brush_Clone(const brush_t * const b)
+{
+    brush_t *n = NULL;
+    face_t  *f, *nf;
 
-	if ( b->patchBrush ) {
-		patchMesh_t *p = Patch_Duplicate( b->pPatch );
-		Brush_RemoveFromList( p->pSymbiot );
-		Entity_UnlinkBrush( p->pSymbiot );
-		n = p->pSymbiot;
-	}
-	else
-	{
-		n = Brush_Alloc();
-		n->numberId = g_nBrushId++;
-		n->owner = b->owner;
-		for ( f = b->brush_faces ; f ; f = f->next )
-		{
-			nf = Face_Clone( f );
-			nf->next = n->brush_faces;
-			n->brush_faces = nf;
-		}
-	}
+    if(b->patchBrush)
+    {
+        patchMesh_t *p = Patch_Duplicate(b->pPatch);
+        Brush_RemoveFromList(p->pSymbiot);
+        Entity_UnlinkBrush(p->pSymbiot);
+        n = p->pSymbiot;
+    }
+    else
+    {
+        n = Brush_Alloc();
+        n->numberId = g_nBrushId++;
+        n->owner = b->owner;
+        for(f = b->brush_faces; f; f = f->next)
+        {
+            nf = Face_Clone(f);
+            nf->next = n->brush_faces;
+            n->brush_faces = nf;
+        }
+    }
 
-	return n;
+    return n;
 }
 
 /*
