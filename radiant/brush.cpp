@@ -530,11 +530,11 @@ void Face_MakePlane(face_t *f)
 }
 
 /*!
- *  Face_MakePlaneCP
+ *  Face_ConstructPlaneCP
  *  Constructs a plane normal through the cross product of two edge vectors,
  *  and computes the distance by projecting a point onto the normal.
  */
-void Face_MakePlaneCP(face_t * const f)
+void Face_ConstructPlaneCP(face_t * const f)
 {
     vec3_t v0, v1, ptOnPlane;
 
@@ -552,13 +552,12 @@ void Face_MakePlaneCP(face_t * const f)
 }
 
 /*!
- *  Face_MakePlaneNewell
+ *  Face_ConstructPlaneNewell
  */
-void Face_MakePlaneNewell(face_t * const f)
+void Face_ConstructPlaneNewell(face_t * const f)
 {
 
 }
-
 
 /*
    ================
