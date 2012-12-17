@@ -511,29 +511,28 @@ void Face_TexdefFromTextureVectors( face_t *f, long double STfromXYZ[2][4], vec3
 }
 
 
-/*
-   ================
-   Face_MakePlane
-   ================
+/*!
+ *  Face_MakePlane
  */
-void Face_MakePlane( face_t *f ){
-	int j;
-	vec3_t t1, t2, t3;
+void Face_MakePlane(face_t *f)
+{
+    vec3_t t1, t2, t3;
 
-	// convert to a vector / dist plane
-	for ( j = 0 ; j < 3 ; j++ )
-	{
-		t1[j] = f->planepts[0][j] - f->planepts[1][j];
-		t2[j] = f->planepts[2][j] - f->planepts[1][j];
-		t3[j] = f->planepts[1][j];
-	}
+    // convert to a vector / dist plane
+    for(int i = 0; i < 3; ++i)
+    {
+        t1[i] = f->planepts[0][i] - f->planepts[1][i];
+        t2[i] = f->planepts[2][i] - f->planepts[1][i];
+        t3[i] = f->planepts[1][i];
+    }
 
-	CrossProduct( t1,t2, f->plane.normal );
-	if ( VectorCompare( f->plane.normal, vec3_origin ) ) {
-		Sys_FPrintf( SYS_WRN, "WARNING: brush plane with no normal\n" );
-	}
-	VectorNormalize( f->plane.normal, f->plane.normal );
-	f->plane.dist = DotProduct( t3, f->plane.normal );
+    CrossProduct(t1, t2, f->plane.normal);
+
+    if(VectorCompare(f->plane.normal, vec3_origin))
+        Sys_FPrintf(SYS_WRN, "WARNING: brush plane with no normal\n");
+    
+    VectorNormalize(f->plane.normal, f->plane.normal);
+    f->plane.dist = DotProduct(t3, f->plane.normal);
 }
 
 /*
@@ -2760,16 +2759,21 @@ void Brush_BuildWindings(brush_t *b, bool bSnap)
     {
         int i, j;
         free( face->face_winding );
-        w = face->face_winding = Brush_MakeFaceWinding( b, face );
+        w = face->face_winding = Brush_MakeFaceWinding(b, face);
 
-        if ( !g_bBuildWindingsNoTexBuild || !face->d_texture ) {
+        if (!g_bBuildWindingsNoTexBuild || !face->d_texture)
+        {
 #ifdef _DEBUG
             // if there's no d_texture, then we expect pShader to be empty
-            if ( !face->d_texture && face->pShader ) {
-                Sys_FPrintf( SYS_ERR, "ERROR: unexpected face->pShader != NULL with face->d_texture == NULL in Brush_BuildWindings\n" );
+            if(!face->d_texture && face->pShader) 
+            {
+                Sys_FPrintf(SYS_ERR, "ERROR: unexpected face->pShader != " 
+                                      "NULL with face->d_texture == NULL in "
+                                      "Brush_BuildWindings\n" );
             }
 #endif
-            if ( ( !face->d_texture && !face->pShader ) || !face->pShader ) {
+            if((!face->d_texture && !face->pShader) || !face->pShader) 
+            {
                 // NOTE TTimo
                 // patch 84 for bug 253 doesn't dec ref the potential face->pShader
                 // add a debug check to make sure this is actually not necessary
