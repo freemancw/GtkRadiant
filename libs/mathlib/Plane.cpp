@@ -8,10 +8,10 @@
 
 namespace RAD
 {
-    /*
-Plane::Side Plane::classifyPoint(const Vector3& p) const
+    
+Plane::Side Plane::pClassifyPoint(const Vector3f& p) const
 {
     return Side::ON;
-}*/
+}
 
 } // namespace RAD

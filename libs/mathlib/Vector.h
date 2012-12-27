@@ -17,131 +17,144 @@ namespace RAD
 // Interfaces
 //============================================================================
 
-template<const size_t N>
+template<typename T, const size_t N>
 class Vector
 {
 public:
-    static const Vector<N> ZERO;
+    static const Vector<T, N> ZERO;
 
-    static float dotProduct(const Vector<N>& a, const Vector<N>& b);
+    static T dotProduct(const Vector<T, N>& a, const Vector<T, N>& b);
 
     Vector();
-    explicit Vector(const Vector<N>& values);
+    explicit Vector(const Vector<T, N>& values);
 
-    float operator[](const size_t i) const;
-    float& operator[](const size_t i);
-    Vector<N> operator-() const;
-    Vector<N> operator+(const Vector<N>& rhs) const;
-    Vector<N> operator-(const Vector<N>& rhs) const;
-    Vector<N> operator*(const Vector<N>& rhs) const;
-    Vector<N> operator*(const float s) const;
-    Vector<N> operator/(const Vector<N>& rhs) const;
-    Vector<N> operator/(const float s) const;
-    Vector<N>& operator=(const Vector<N>& rhs);
-    Vector<N>& operator+=(const Vector<N>& rhs);
-    Vector<N>& operator-=(const Vector<N>& rhs);
-    Vector<N>& operator*=(const Vector<N>& rhs);
-    Vector<N>& operator*=(const float s);
-    Vector<N>& operator/=(const Vector<N>& rhs);
-    Vector<N>& operator/=(const float s);
-    bool operator==(const Vector<N>& rhs) const;
-    bool operator!=(const Vector<N>& rhs) const;
+    T operator[](const size_t i) const;
+    T& operator[](const size_t i);
+    Vector<T, N> operator-() const;
+    Vector<T, N> operator+(const Vector<T, N>& rhs) const;
+    Vector<T, N> operator-(const Vector<T, N>& rhs) const;
+    Vector<T, N> operator*(const Vector<T, N>& rhs) const;
+    Vector<T, N> operator*(const T s) const;
+    Vector<T, N> operator/(const Vector<T, N>& rhs) const;
+    Vector<T, N> operator/(const T s) const;
+    Vector<T, N>& operator=(const Vector<T, N>& rhs);
+    Vector<T, N>& operator+=(const Vector<T, N>& rhs);
+    Vector<T, N>& operator-=(const Vector<T, N>& rhs);
+    Vector<T, N>& operator*=(const Vector<T, N>& rhs);
+    Vector<T, N>& operator*=(const T s);
+    Vector<T, N>& operator/=(const Vector<T, N>& rhs);
+    Vector<T, N>& operator/=(const T s);
+    bool operator==(const Vector<T, N>& rhs) const;
+    bool operator!=(const Vector<T, N>& rhs) const;
 
-    bool isApproxEqualTo(const Vector<N>& rhs, const float epsilon) const;
+    bool isApproxEqualTo(const Vector<T, N>& rhs, const T epsilon) const;
     void toZero();
     void normalize();
-    Vector<N> normalizedCopy() const;
-    float length() const;
-    float lengthSquared() const;
+    Vector<T, N> normalizedCopy() const;
+    T length() const;
+    T lengthSquared() const;
+    const T* ptr() const;
+    T* ptr();
 
 protected:
-    float elts[N];
+    T elts[N];
 };
 
-class Vector2 : public Vector<2>
+class Vector2f : public Vector<float, 2>
 {
 public:
-    static const Vector2 XAXIS, YAXIS;
+    static const Vector2f XAXIS, YAXIS;
 
-    Vector2();
-    explicit Vector2(const float x, const float y);
+    Vector2f();
+    explicit Vector2f(const float x, const float y);
 
-    float x() const;
+    float  x() const;
     float& x();
-    float y() const;
+    float  y() const;
     float& y();
 };
 
-class Vector3 : public Vector<3>
+class Vector3f : public Vector<float, 3>
 {
 public:
-    static const Vector3 XAXIS, YAXIS, ZAXIS;
-    static Vector3 crossProduct(const Vector3& a, const Vector3& b);
+    static const Vector3f XAXIS, YAXIS, ZAXIS;
+    static Vector3f crossProduct(const Vector3f& a, const Vector3f& b);
 
-    Vector3();
-    explicit Vector3(const float x, const float y, const float z);
+    Vector3f();
+    explicit Vector3f(const float x, const float y, const float z);
 
-    float x() const;
+    float  x() const;
     float& x();
-    float y() const;
+    float  y() const;
     float& y();
-    float z() const;
+    float  z() const;
     float& z();
 };
 
-class Vector4 : public Vector<4>
+class Vector4f : public Vector<float, 4>
 {
 public:
-    static const Vector4 XAXIS, YAXIS, ZAXIS, WAXIS;
+    static const Vector4f XAXIS, YAXIS, ZAXIS, WAXIS;
 
-    Vector4();
-    explicit Vector4(const float x, const float y, const float z, 
-                     const float w);
+    Vector4f();
+    explicit Vector4f(const float x, const float y, const float z, 
+                      const float w);
 
-    float x() const;
+    float  x() const;
     float& x();
-    float y() const;
+    float  y() const;
     float& y();
-    float z() const;
+    float  z() const;
     float& z();
-    float w() const;
+    float  w() const;
     float& w();
 };
 
 //============================================================================
-// Vector<N> Inline Implementations
+// Vector<T, N> Inline Implementations
 //============================================================================
 
-template<const size_t N>
-inline Vector<N>::Vector()
+template<typename T, const size_t N>
+inline T dotProduct(const Vector<T, N>& a, const Vector<T, N>& b)
 {
+    T out = 0.0;
+
     for(size_t i = 0; i < N; ++i)
-        elts[i] = 0.0f;
+        out += a[i] * b[i];
+
+    return out;
 }
 
-template<const size_t N>
-inline Vector<N>::Vector(const Vector<N>& values)
+template<typename T, const size_t N>
+inline Vector<T, N>::Vector()
+{
+    for(size_t i = 0; i < N; ++i)
+        elts[i] = 0.0;
+}
+
+template<typename T, const size_t N>
+inline Vector<T, N>::Vector(const Vector<T, N>& values)
 {
     for(size_t i = 0; i < N; ++i)
         elts[i] = values[i];
 }
 
-template<const size_t N>
-inline float Vector<N>::operator[](const size_t i) const
+template<typename T, const size_t N>
+inline T Vector<T, N>::operator[](const size_t i) const
 {
     return elts[i];
 }
 
-template<const size_t N>
-inline float& Vector<N>::operator[](const size_t i)
+template<typename T, const size_t N>
+inline T& Vector<T, N>::operator[](const size_t i)
 {
     return elts[i];
 }
 
-template<const size_t N>
-inline Vector<N> Vector<N>::operator-() const
+template<typename T, const size_t N>
+inline Vector<T, N> Vector<T, N>::operator-() const
 {
-    Vector<N> out;
+    Vector<T, N> out;
 
     for(size_t i = 0; i < N; ++i)
         out[i] = -elts[i];
@@ -149,10 +162,10 @@ inline Vector<N> Vector<N>::operator-() const
     return out;
 }
 
-template<const size_t N>
-inline Vector<N> Vector<N>::operator+(const Vector<N>& rhs) const
+template<typename T, const size_t N>
+inline Vector<T, N> Vector<T, N>::operator+(const Vector<T, N>& rhs) const
 {
-    Vector<N> out;
+    Vector<T, N> out;
 
     for(size_t i = 0; i < N; ++i)
         out[i] = elts[i] + rhs[i];
@@ -160,10 +173,10 @@ inline Vector<N> Vector<N>::operator+(const Vector<N>& rhs) const
     return out;
 }
 
-template<const size_t N>
-inline Vector<N> Vector<N>::operator-(const Vector<N>& rhs) const
+template<typename T, const size_t N>
+inline Vector<T, N> Vector<T, N>::operator-(const Vector<T, N>& rhs) const
 {
-    Vector<N> out;
+    Vector<T, N> out;
 
     for(size_t i = 0; i < N; ++i)
         out[i] = elts[i] - rhs[i];
@@ -171,10 +184,10 @@ inline Vector<N> Vector<N>::operator-(const Vector<N>& rhs) const
     return out;
 }
 
-template<const size_t N>
-inline Vector<N> Vector<N>::operator*(const Vector<N>& rhs) const
+template<typename T, const size_t N>
+inline Vector<T, N> Vector<T, N>::operator*(const Vector<T, N>& rhs) const
 {
-    Vector<N> out;
+    Vector<T, N> out;
 
     for(size_t i = 0; i < N; ++i)
         out[i] = elts[i] * rhs[i];
@@ -182,10 +195,10 @@ inline Vector<N> Vector<N>::operator*(const Vector<N>& rhs) const
     return out;
 }
 
-template<const size_t N>
-inline Vector<N> Vector<N>::operator*(const float s) const
+template<typename T, const size_t N>
+inline Vector<T, N> Vector<T, N>::operator*(const T s) const
 {
-    Vector<N> out;
+    Vector<T, N> out;
 
     for(size_t i = 0; i < N; ++i)
         out[i] = elts[i] * s;
@@ -193,12 +206,12 @@ inline Vector<N> Vector<N>::operator*(const float s) const
     return out;
 }
 
-template<const size_t N>
-inline Vector<N> Vector<N>::operator/(const Vector<N>& rhs) const
+template<typename T, const size_t N>
+inline Vector<T, N> Vector<T, N>::operator/(const Vector<T, N>& rhs) const
 {
     assert(!(rhs == ZERO));
 
-    Vector<N> out;
+    Vector<T, N> out;
 
     for(size_t i = 0; i < N; ++i)
         out[i] = elts[i] / rhs[i];
@@ -206,12 +219,12 @@ inline Vector<N> Vector<N>::operator/(const Vector<N>& rhs) const
     return out;
 }
 
-template<const size_t N>
-inline Vector<N> Vector<N>::operator/(const float s) const
+template<typename T, const size_t N>
+inline Vector<T, N> Vector<T, N>::operator/(const T s) const
 {
-    assert(s != 0.0f);
+    assert(s != 0.0);
 
-    Vector<N> out;
+    Vector<T, N> out;
 
     for(size_t i = 0; i < N; ++i)
         out[i] = elts[i] / s;
@@ -219,8 +232,8 @@ inline Vector<N> Vector<N>::operator/(const float s) const
     return out;
 }
 
-template<const size_t N>
-inline Vector<N>& Vector<N>::operator=(const Vector<N>& rhs)
+template<typename T, const size_t N>
+inline Vector<T, N>& Vector<T, N>::operator=(const Vector<T, N>& rhs)
 {
     for(size_t i = 0; i < N; ++i)
         elts[i] = rhs[i];
@@ -228,8 +241,8 @@ inline Vector<N>& Vector<N>::operator=(const Vector<N>& rhs)
     return *this;
 }
 
-template<const size_t N>
-inline Vector<N>& Vector<N>::operator+=(const Vector<N>& rhs)
+template<typename T, const size_t N>
+inline Vector<T, N>& Vector<T, N>::operator+=(const Vector<T, N>& rhs)
 {
     for(size_t i = 0; i < N; ++i)
         elts[i] += rhs[i];
@@ -237,8 +250,8 @@ inline Vector<N>& Vector<N>::operator+=(const Vector<N>& rhs)
     return *this;
 }
 
-template<const size_t N>
-inline Vector<N>& Vector<N>::operator-=(const Vector<N>& rhs)
+template<typename T, const size_t N>
+inline Vector<T, N>& Vector<T, N>::operator-=(const Vector<T, N>& rhs)
 {
     for(size_t i = 0; i < N; ++i)
         elts[i] -= rhs[i];
@@ -246,8 +259,8 @@ inline Vector<N>& Vector<N>::operator-=(const Vector<N>& rhs)
     return *this;
 }
 
-template<const size_t N>
-inline Vector<N>& Vector<N>::operator*=(const Vector<N>& rhs)
+template<typename T, const size_t N>
+inline Vector<T, N>& Vector<T, N>::operator*=(const Vector<T, N>& rhs)
 {
     for(size_t i = 0; i < N; ++i)
         elts[i] *= rhs[i];
@@ -255,8 +268,8 @@ inline Vector<N>& Vector<N>::operator*=(const Vector<N>& rhs)
     return *this;
 }
 
-template<const size_t N>
-inline Vector<N>& Vector<N>::operator*=(const float s)
+template<typename T, const size_t N>
+inline Vector<T, N>& Vector<T, N>::operator*=(const T s)
 {
     for(size_t i = 0; i < N; ++i)
         elts[i] *= s;
@@ -264,8 +277,8 @@ inline Vector<N>& Vector<N>::operator*=(const float s)
     return *this;
 }
 
-template<const size_t N>
-inline Vector<N>& Vector<N>::operator/=(const Vector<N>& rhs)
+template<typename T, const size_t N>
+inline Vector<T, N>& Vector<T, N>::operator/=(const Vector<T, N>& rhs)
 {
     assert(!(rhs == ZERO));
 
@@ -275,10 +288,10 @@ inline Vector<N>& Vector<N>::operator/=(const Vector<N>& rhs)
     return *this;
 }
 
-template<const size_t N>
-inline Vector<N>& Vector<N>::operator/=(const float s)
+template<typename T, const size_t N>
+inline Vector<T, N>& Vector<T, N>::operator/=(const T s)
 {
-    assert(s != 0.0f);
+    assert(s != 0.0);
 
     for(size_t i = 0; i < N; ++i)
         elts[i] /= s;
@@ -286,8 +299,8 @@ inline Vector<N>& Vector<N>::operator/=(const float s)
     return *this;
 }
 
-template<const size_t N>
-inline bool Vector<N>::operator==(const Vector<N>& rhs) const
+template<typename T, const size_t N>
+inline bool Vector<T, N>::operator==(const Vector<T, N>& rhs) const
 {
     for(size_t i = 0; i < N; ++i)
         if(elts[i] != rhs[i]) return false;
@@ -295,8 +308,8 @@ inline bool Vector<N>::operator==(const Vector<N>& rhs) const
     return true;
 }
 
-template<const size_t N>
-inline bool Vector<N>::operator!=(const Vector<N>& rhs) const
+template<typename T, const size_t N>
+inline bool Vector<T, N>::operator!=(const Vector<T, N>& rhs) const
 {
     for(size_t i = 0; i < N; ++i)
         if(elts[i] != rhs[i]) return true;
@@ -304,9 +317,9 @@ inline bool Vector<N>::operator!=(const Vector<N>& rhs) const
     return false;
 }
 
-template<const size_t N>
-inline bool Vector<N>::isApproxEqualTo(const Vector<N>& rhs, 
-                                       const float epsilon) const
+template<typename T, const size_t N>
+inline bool Vector<T, N>::isApproxEqualTo(const Vector<T, N>& rhs, 
+                                          const T epsilon) const
 {
     for(size_t i = 0; i < N; ++i)
         if(fabs(elts[i] - rhs[i]) < eps) return false;
@@ -314,128 +327,102 @@ inline bool Vector<N>::isApproxEqualTo(const Vector<N>& rhs,
     return true;
 }
 
-template<const size_t N> 
-inline void Vector<N>::toZero()
+template<typename T, const size_t N> 
+inline void Vector<T, N>::toZero()
 {
     (*this) = ZERO;
 }
     
-template<const size_t N> 
-inline void Vector<N>::normalize()
+template<typename T, const size_t N> 
+inline void Vector<T, N>::normalize()
 {
     (*this) /= length();
 }
 
-template<const size_t N> 
-inline Vector<N> Vector<N>::normalizedCopy() const
+template<typename T, const size_t N> 
+inline Vector<T, N> Vector<T, N>::normalizedCopy() const
 {
-    Vector<N> out(*this);
+    Vector<T, N> out(*this);
     out.normalize();
     return out;
 }
 
-template<const size_t N> 
-inline float Vector<N>::length() const
+template<typename T, const size_t N> 
+inline T Vector<T, N>::length() const
 {
     return sqrt(lengthSquared());
 }
 
-template<const size_t N> 
-inline float Vector<N>::lengthSquared() const
+template<typename T, const size_t N> 
+inline T Vector<T, N>::lengthSquared() const
 {
     return dotProduct(*this, *this);
 }
 
+template<typename T, const size_t N> 
+inline const T* Vector<T, N>::ptr() const
+{
+    return elts;
+}
+
+template<typename T, const size_t N> 
+inline T* Vector<T, N>::ptr()
+{
+    return elts;
+}
+
 //============================================================================
-// Vector2 Inline Implementations
+// Vector2f Inline Implementations
 //============================================================================
 
-inline Vector2::Vector2() : Vector() {}
+inline Vector2f::Vector2f() : Vector() {}
 
-inline Vector2::Vector2(const float x, const float y) 
+inline Vector2f::Vector2f(const float x, const float y) 
 {
     elts[0] = x;
     elts[1] = y;
 }
 
-inline float Vector2::x() const 
-{
-    return elts[0];
-}
-
-inline float& Vector2::x() 
-{
-    return elts[0];
-}
-
-inline float Vector2::y() const
-{
-    return elts[1];
-}
-
-inline float& Vector2::y()
-{
-    return elts[1];
-}
+inline float Vector2f::x() const { return elts[0]; }
+inline float& Vector2f::x() { return elts[0]; }
+inline float Vector2f::y() const { return elts[1]; }
+inline float& Vector2f::y() { return elts[1]; }
 
 //============================================================================
-// Vector3 Inline Implementations
+// Vector3f Inline Implementations
 //============================================================================
 
-inline Vector3::Vector3() : Vector() {}
+inline Vector3f::Vector3f() : Vector() {}
 
-inline Vector3::Vector3(const float x, const float y, const float z) 
+inline Vector3f::Vector3f(const float x, const float y, const float z) 
 {
     elts[0] = x;
     elts[1] = y;
     elts[2] = z;
 }
 
-inline Vector3 Vector3::crossProduct(const Vector3& a, const Vector3& b)
+inline Vector3f Vector3f::crossProduct(const Vector3f& a, const Vector3f& b)
 {
-    return Vector3(a.y() * b.z() - a.z() * b.y(),
-                   a.z() * b.x() - a.x() * b.z(),
-                   a.x() * b.y() - a.y() * b.x());
+    return Vector3f(a.y() * b.z() - a.z() * b.y(),
+                    a.z() * b.x() - a.x() * b.z(),
+                    a.x() * b.y() - a.y() * b.x());
 }
 
-inline float Vector3::x() const 
-{
-    return elts[0];
-}
-
-inline float& Vector3::x() 
-{
-    return elts[0];
-}
-
-inline float Vector3::y() const
-{
-    return elts[1];
-}
-
-inline float& Vector3::y()
-{
-    return elts[1];
-}
-
-inline float Vector3::z() const
-{
-    return elts[2];
-}
-
-inline float& Vector3::z()
-{
-    return elts[2];
-}
+inline float Vector3f::x() const { return elts[0]; }
+inline float& Vector3f::x() { return elts[0]; }
+inline float Vector3f::y() const { return elts[1]; }
+inline float& Vector3f::y() { return elts[1]; }
+inline float Vector3f::z() const { return elts[2]; }
+inline float& Vector3f::z() { return elts[2]; }
 
 //============================================================================
-// Vector4 Inline Implementations
+// Vector4f Inline Implementations
 //============================================================================
 
-inline Vector4::Vector4() : Vector() {}
+inline Vector4f::Vector4f() : Vector() {}
 
-inline Vector4::Vector4(const float x, const float y, const float z,
-                        const float w) 
+inline Vector4f::Vector4f(const float x, const float y, const float z,
+                          const float w) 
 {
     elts[0] = x;
     elts[1] = y;
@@ -443,45 +430,14 @@ inline Vector4::Vector4(const float x, const float y, const float z,
     elts[3] = w;
 }
 
-inline float Vector4::x() const 
-{
-    return elts[0];
-}
-
-inline float& Vector4::x() 
-{
-    return elts[0];
-}
-
-inline float Vector4::y() const
-{
-    return elts[1];
-}
-
-inline float& Vector4::y()
-{
-    return elts[1];
-}
-
-inline float Vector4::z() const
-{
-    return elts[2];
-}
-
-inline float& Vector4::z()
-{
-    return elts[2];
-}
-
-inline float Vector4::w() const
-{
-    return elts[3];
-}
-
-inline float& Vector4::w()
-{
-    return elts[3];
-}
+inline float Vector4f::x() const { return elts[0]; }
+inline float& Vector4f::x() { return elts[0]; }
+inline float Vector4f::y() const { return elts[1]; }
+inline float& Vector4f::y() { return elts[1]; }
+inline float Vector4f::z() const { return elts[2]; }
+inline float& Vector4f::z() { return elts[2]; }
+inline float Vector4f::w() const { return elts[3]; }
+inline float& Vector4f::w() { return elts[3]; }
 
 } // namespace RAD
 
