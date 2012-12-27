@@ -9,7 +9,7 @@
 namespace RAD
 {
     
-Plane::Side Plane::pClassifyPoint(const Vector3f& p) const
+Plane::Side Plane::pClassifyPoint(const Point3f& p) const
 {
     return Side::ON;
 }

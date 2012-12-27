@@ -7,6 +7,7 @@
 #ifndef PLANE_H
 #define PLANE_H
 
+#include "Point.h"
 #include "Vector.h"
 
 namespace RAD
@@ -26,7 +27,7 @@ public:
     explicit Plane(const Vector3f& n, const float d);
 
     enum Side { FRONT, BACK, ON };
-    Side pClassifyPoint(const Vector3f& p) const;
+    Side pClassifyPoint(const Point3f& p) const;
 };
 
 //============================================================================

@@ -73,8 +73,155 @@ public:
 };
 
 //============================================================================
-// Inline Implementations
+// Point<T, N> Inline Implementations
 //============================================================================
+
+template<typename T, const size_t N>
+inline Point<T, N>::Point()
+{
+    for(size_t i = 0; i < N; ++i)
+        elts[i] = 0.0;
+}
+
+template<typename T, const size_t N>
+inline Point<T, N>::Point(const Point<T, N>& values)
+{
+    for(size_t i = 0; i < N; ++i)
+        elts[i] = values[i];
+}
+
+template<typename T, const size_t N>
+inline T Point<T, N>::operator[](const size_t i) const
+{
+    return elts[i];
+}
+
+template<typename T, const size_t N>
+inline T& Point<T, N>::operator[](const size_t i)
+{
+    return elts[i];
+}
+
+template<typename T, const size_t N>
+inline Point<T, N> Point<T, N>::operator-() const
+{
+    Point<T, N> out;
+
+    for(size_t i = 0; i < N; ++i)
+        out[i] = -elts[i];
+
+    return out;
+}
+
+template<typename T, const size_t N>
+inline Point<T, N> Point<T, N>::operator+(const Vector<T, N>& rhs) const
+{
+    Point<T, N> out;
+
+    for(size_t i = 0; i < N; ++i)
+        out[i] = elts[i] + rhs[i];
+
+    return out;
+}
+
+template<typename T, const size_t N>
+inline Point<T, N> Point<T, N>::operator-(const Vector<T, N>& rhs) const
+{
+    Point<T, N> out;
+
+    for(size_t i = 0; i < N; ++i)
+        out[i] = elts[i] - rhs[i];
+
+    return out;
+}
+
+template<typename T, const size_t N>
+inline Vector<T, N> Point<T, N>::operator-(const Point<T, N>& rhs) const
+{
+    Vector<T, N> out;
+
+    for(size_t i = 0; i < N; ++i)
+        out[i] = elts[i] - rhs[i];
+
+    return out;
+}
+
+template<typename T, const size_t N>
+inline Point<T, N>& Point<T, N>::operator=(const Point<T, N>& rhs)
+{
+    for(size_t i = 0; i < N; ++i)
+        elts[i] = rhs[i];
+
+    return *this;
+}
+
+template<typename T, const size_t N>
+inline Point<T, N>& Point<T, N>::operator+=(const Vector<T, N>& rhs)
+{
+    for(size_t i = 0; i < N; ++i)
+        elts[i] += rhs[i];
+
+    return *this;
+}
+
+template<typename T, const size_t N>
+inline Point<T, N>& Point<T, N>::operator-=(const Vector<T, N>& rhs)
+{
+    for(size_t i = 0; i < N; ++i)
+        elts[i] -= rhs[i];
+
+    return *this;
+}
+
+template<typename T, const size_t N>
+inline bool Point<T, N>::operator==(const Point<T, N>& rhs) const
+{
+    for(size_t i = 0; i < N; ++i)
+        if(elts[i] != rhs[i])
+            return false;
+
+    return true;
+}
+
+template<typename T, const size_t N>
+inline bool Point<T, N>::operator!=(const Point<T, N>& rhs) const
+{
+    for(size_t i = 0; i < N; ++i)
+        if(elts[i] != rhs[i])
+            return true;
+
+    return false;
+}
+
+template<typename T, const size_t N>
+inline bool Point<T, N>::isApproxEqualTo(const Point<T, N>& rhs, 
+                                         const T epsilon) const
+{
+    for(size_t i = 0; i < N; ++i)
+        if(fabs(elts[i] - rhs[i]) > epsilon)
+            return false;
+
+    return true;
+}
+
+template<typename T, const size_t N>
+inline void Point<T, N>::toZero()
+{
+    for(size_t i = 0; i < N; ++i)
+        elts[i] = 0.0;
+}
+
+template<typename T, const size_t N>
+inline const T* Point<T, N>::ptr() const
+{
+    return elts;
+}
+
+template<typename T, const size_t N>
+inline T* Point<T, N>::ptr()
+{
+    return elts;
+}
 
 } // namespace RAD
 
