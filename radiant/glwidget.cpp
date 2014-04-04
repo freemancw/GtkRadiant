@@ -204,7 +204,8 @@ gboolean WINAPI gtk_glwidget_make_current( GtkWidget *widget ){
 // Think about rewriting this font stuff to use OpenGL display lists and glBitmap().
 // Bit maps together with display lists may offer a performance increase, but
 // they would not allow antialiased fonts.
-static const char font_string[] = "Monospace bold";
+static const char font_string[] = "Arial";
+//static const char font_string[] = "Monospace bold";
 static const int font_height = 10;
 static int font_ascent = -1;
 static int font_descent = -1;
